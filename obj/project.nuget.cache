@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "Tim0UPyJ8XxTewcYFrkHYkB8LXxLiTvLHF+zUwB5oZzpRD/wwE2CYRfso6RAaXyUjOak9RNkyXpTJsZdK++bXA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\thbui\\source\\repos\\WinReporter\\WinReporter.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\thbui\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0-preview.7.23375.4\\microsoft.data.sqlite.core.8.0.0-preview.7.23375.4.nupkg.sha512",
+    "C:\\Users\\thbui\\.nuget\\packages\\sqlitepclraw.core\\2.1.5\\sqlitepclraw.core.2.1.5.nupkg.sha512",
+    "C:\\Users\\thbui\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512"
+  ],
+  "logs": []
+}

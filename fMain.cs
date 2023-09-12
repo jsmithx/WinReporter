@@ -20,7 +20,13 @@ namespace WinReporter
             byte[] data = Encoding.UTF8.GetBytes("Publisher\tMarvel Comics[a]\r\nFirst appearance\tCaptain America Comics #1 (December 20, 1940)[b]\r\nCreated by\tJoe Simon\r\nJack Kirby");
             string[] keys = new string[] { "Publisher", "First appearance", "Created by" };
             TextParser a = new(ref data, ref keys);
-            //bool b = a.IsEqual(1, Encoding.UTF8.GetBytes("n"));
+
+            byte[] testdata = Encoding.Default.GetBytes("a//bb//ccc//dddd//eeeee//");
+            byte[] delimiter = Encoding.Default.GetBytes("/");
+            byte[][] testdatachunks = testdata.Split(delimiter);
+            byte[][] testdatachunks2 = testdata.Split(delimiter, true);
+            string[] testdatachunkstxt = testdatachunks.ToStringArray();
+            string[] testdatachunkstxt2 = testdatachunks2.ToStringArray();
         }
         
         private string TreeToText(TreeNodeCollection nodes)

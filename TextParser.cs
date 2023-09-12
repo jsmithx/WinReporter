@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -12,6 +13,121 @@ namespace WinReporter
     {
         public string Name { get; set; }
         public string Value { get; set; }
+    }
+    public static class ArrayExtension
+    {
+        public static string[] ToStringArray(this byte[][] source)
+        {
+            List<string> chunks = new();
+            for (int i = 0; i < source.Length; i++)
+            {
+                string chunk = Encoding.Default.GetString(source[i]);
+                chunks.Add(chunk);
+            }
+            return (chunks.ToArray());
+        }
+        public static byte[][] Split(this byte[] source, byte[] separator, bool removeEmptyEntries = false)
+        {
+            List<byte[]> chunks = new();
+            int posEnd = 0;
+            int posStart = 0;
+
+            while(posEnd < source.Length)
+            {
+                bool isEqual = source.IsEqual(posEnd, separator);
+                bool isEndPos = posEnd == source.Length - 1;
+                bool isEndPosDelimiter = false;
+
+                if (isEqual || isEndPos)
+                {
+                    if (isEndPos)
+                    {
+                        if(!isEqual)
+                        {
+                            posEnd++;
+                        }
+                        else
+                        {
+                            isEndPosDelimiter = true;
+                        }
+                    }
+                    byte[] chunk = new byte[posEnd - posStart];
+                    Array.Copy(source, posStart, chunk, 0, chunk.Length);
+                    string chunkStr = Encoding.Default.GetString(chunk);
+                    if (chunk.Length > 0 || removeEmptyEntries == false)
+                    {
+                        chunks.Add(chunk);
+                    }
+
+                    if (isEndPosDelimiter == true && removeEmptyEntries == false)
+                    {
+                        chunks.Add(new byte[0] { });
+                    }
+                    posEnd += separator.Length;
+                    posStart = posEnd;
+                }
+                else
+                {
+                    posEnd++;
+                }
+            }
+            return (chunks.ToArray());
+        }
+        public static bool IsEqual(this byte[] source, int sourcePos, byte[] key)
+        {
+            bool isValid = true;
+            int n = 0;
+            for (int i = sourcePos; i < source.Length; i++)
+            {
+                if (n < key.Length)
+                {
+                    if (key[n] != source[i])
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    isValid = true;
+                    break;
+                }
+                n++;
+            }
+            return (isValid);
+        }
+        public static bool IsEqual(this byte[] source, int sourcePos, string[] keys, out string matchedKey)
+        {
+            matchedKey = string.Empty;
+
+            bool isValid = false;
+
+            for (int k = 0; k < keys.Length; k++)
+            {
+                byte[] key = Encoding.Default.GetBytes(keys[k]);
+
+                isValid = source.IsEqual(sourcePos, key);
+                if (isValid == true)
+                {
+                    matchedKey = keys[k];
+                    break;
+                }
+            }
+
+            return (isValid);
+        }
+
+        public static bool IsLetterOrDigit(this byte[] source, int sourcePos)
+        {
+            if (sourcePos > -1 && sourcePos < source.Length)
+            {
+                if (char.IsLetterOrDigit(Convert.ToChar(source[sourcePos])))
+                {
+                    return (true);
+                }
+            }
+            return (false);
+        }
     }
 
     public class TextParser
@@ -39,7 +155,7 @@ namespace WinReporter
             while (pos < this.DataSource.Length)
             {
                 string matchedKey;
-                if (this.IsLetterOrDigit(pos - 1) == false && this.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
+                if (this.DataSource.IsLetterOrDigit(pos - 1) == false && this.DataSource.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
                 {
                     if (resultPos > -1)
                     {
@@ -71,60 +187,6 @@ namespace WinReporter
             }
         }
         
-        public bool IsEqual(int sourcePos, byte[] key)
-        {
-            bool isValid = false;
-            int n = 0;
-            for (int i = sourcePos; i < this.DataSource.Length; i++)
-            {
-                if (n < key.Length)
-                {
-                    if (key[n] != this.DataSource[i])
-                    {
-                        isValid = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    isValid = true;
-                    break;
-                }
-                n++;
-            }
-            return (isValid);
-        }
-        public bool IsEqual(int sourcePos, string[] keys, out string matchedKey)
-        {
-            matchedKey = string.Empty;
-
-            bool isValid = false;
-
-            for (int k = 0; k < keys.Length; k++)
-            {
-                byte[] key = Encoding.Default.GetBytes(keys[k]);
-
-                isValid = this.IsEqual(sourcePos, key);
-                if (isValid == true)
-                {
-                    matchedKey = keys[k];
-                    break;
-                }
-            }
-            
-            return (isValid);
-        }
-
-        public bool IsLetterOrDigit(int sourcePos)
-        {
-            if (sourcePos > -1 && sourcePos < this.DataSource.Length)
-            {
-                if (char.IsLetterOrDigit(Convert.ToChar(this.DataSource[sourcePos])))
-                {
-                    return (true);
-                }
-            }
-            return (false);
-        }
+        
     }
 }

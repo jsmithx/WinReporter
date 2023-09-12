@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -130,6 +131,14 @@ namespace WinReporter
         }
     }
 
+    public class Key
+    {
+        public byte[][] Subkeys { get; set; }
+        public Key(byte[] keys, byte[] subkeySeparator)
+        {
+            this.Subkeys = keys.Split(subkeySeparator, true);
+        }
+    }
     public class TextParser
     {
         private byte[] DataSource { get; set; }

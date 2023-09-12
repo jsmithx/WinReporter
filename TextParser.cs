@@ -17,15 +17,153 @@ namespace WinReporter
     }
     public static class ArrayExtension
     {
-        public static string[] ToStringArray(this byte[][] source)
+        public static string[] ToTextArray(this byte[][] source)
         {
             List<string> chunks = new();
             for (int i = 0; i < source.Length; i++)
             {
-                string chunk = Encoding.Default.GetString(source[i]);
+                string chunk = source[i].ToText();
                 chunks.Add(chunk);
             }
             return (chunks.ToArray());
+        }
+        public static string ToText(this byte[] source)
+        {
+            return(Encoding.Unicode.GetString(source));
+        }
+        public static byte[] EncodeSpecialChars(this byte[] source, char[] specialChars)
+        {
+            int charsCount = source.CountSpecialChars(specialChars);
+
+            byte[] escapeChar = BitConverter.GetBytes('/');
+            int escapeCharSize = escapeChar.Length;
+            byte[] EncodedSource = new byte[source.Length + (charsCount * escapeCharSize)];
+
+            int i = 0;
+            int encodedPos = 0;
+            char matchedChar;
+            string EncodedSourceStr;
+            while (i < source.Length)
+            {
+                if (source.IsEqual(i, specialChars, out matchedChar) == true)
+                {
+                    byte[] matchedCharBytes = BitConverter.GetBytes(matchedChar);
+
+                    Array.Copy(escapeChar, 0, EncodedSource, encodedPos, escapeChar.Length);
+                    encodedPos += escapeChar.Length;
+                    EncodedSourceStr = EncodedSource.ToText();
+                    Array.Copy(matchedCharBytes, 0, EncodedSource, encodedPos, matchedCharBytes.Length);
+                    EncodedSourceStr = EncodedSource.ToText();
+                    encodedPos += matchedCharBytes.Length;
+
+                    i += matchedCharBytes.Length;
+                }
+                else
+                {
+                    EncodedSource[encodedPos] = source[i];
+                    EncodedSourceStr = EncodedSource.ToText();
+                    encodedPos++;
+                    i++;
+                }
+            }
+            return (EncodedSource);
+        }
+        public static byte[] DecodeSpecialChars(this byte[] source, char[] specialChars)
+        {
+            string sourceStr = source.ToText();
+            char escapeChar = '/';
+            byte[] escapeCharBytes = BitConverter.GetBytes(escapeChar);
+            int escapeCharSize = escapeCharBytes.Length;
+
+            int escapeCharCount = source.CountEscapeChars(escapeChar);
+
+            byte[] DecodedSource = new byte[source.Length - (escapeCharCount * escapeCharSize)];
+            int i = 0;
+            int decodedPos = 0;
+            while (i < source.Length)
+            {
+                if (source.IsEqual(i, escapeChar) == true)
+                {
+                    i += escapeCharBytes.Length;
+
+                    if (i < source.Length)
+                    {
+                        Array.Copy(source, i, DecodedSource, decodedPos, 2);
+                        string DecodedSourceStr = DecodedSource.ToText();
+                        decodedPos += 2;
+                        i += 2;
+                    }
+                }
+                else
+                {
+                    DecodedSource[decodedPos] = source[i];
+                    string DecodedSourceStr = DecodedSource.ToText();
+                    decodedPos++;
+                    i++;
+                }
+            }
+
+            return (DecodedSource);
+        }
+        public static int CountSpecialChars(this byte[] source, char[] specialChars)
+        {
+            int count = 0;
+            int i = 0;
+            char escapeChar = '/';
+            byte[] slashBytes = BitConverter.GetBytes(escapeChar);
+            int slashSize = slashBytes.Length;
+
+            char matchedChar;
+            while (i < source.Length)
+            {
+                if (source.IsEqual(i, specialChars, out matchedChar) == true)
+                {
+                    byte[] charByteArray = BitConverter.GetBytes(matchedChar);
+                    count++;
+                    i += charByteArray.Length;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            return (count);
+        }
+        public static int CountEscapeChars(this byte[] source, char escapeChar)
+        {
+            int count = 0;
+            int i = 0;
+            byte[] escapeCharBytes = BitConverter.GetBytes(escapeChar);
+            int escapeCharSize = escapeCharBytes.Length;
+
+            while (i < source.Length)
+            {
+                if (source.IsEqual(i, escapeChar) == true)
+                {
+                    count++;
+                    i += escapeCharBytes.Length;
+
+                    i += 2;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            return (count);
+        }
+
+        public static byte[] ToBytes(this string source)
+        {
+            return(Encoding.Unicode.GetBytes(source));
+        }
+        public static byte[] SelectByteRange(this byte[] source, int start, int length)
+        {
+            return (source.Skip(start).Take(length).ToArray());
+        }
+        public static string SelectTextRange(this byte[] source, int start, int length)
+        {
+            return (source.SelectByteRange(start, length).ToText());
         }
         public static byte[][] Split(this byte[] source, byte[] separator, bool removeEmptyEntries = false)
         {
@@ -54,7 +192,7 @@ namespace WinReporter
                     }
                     byte[] chunk = new byte[posEnd - posStart];
                     Array.Copy(source, posStart, chunk, 0, chunk.Length);
-                    string chunkStr = Encoding.Default.GetString(chunk);
+                    string chunkStr = chunk.ToText();
                     if (chunk.Length > 0 || removeEmptyEntries == false)
                     {
                         chunks.Add(chunk);
@@ -74,6 +212,27 @@ namespace WinReporter
             }
             return (chunks.ToArray());
         }
+        
+        public static bool IsEqual(this byte[] source, int sourcePos, char[] keyChars, out char matchedChar)
+        {
+            matchedChar = '\u0000';
+
+            for (int i = 0; i < keyChars.Length; i++)
+            {
+                if (source.IsEqual(sourcePos, keyChars[i]) == true)
+                {
+                    matchedChar = keyChars[i];
+                    return (true);
+                }
+            }
+
+            return (false);
+        }
+        public static bool IsEqual(this byte[] source, int sourcePos, char keyChar)
+        {
+            return(source.IsEqual(sourcePos, BitConverter.GetBytes(keyChar)));
+        }
+
         public static bool IsEqual(this byte[] source, int sourcePos, byte[] key)
         {
             bool isValid = true;
@@ -97,20 +256,29 @@ namespace WinReporter
             }
             return (isValid);
         }
-        public static bool IsEqual(this byte[] source, int sourcePos, string[] keys, out string matchedKey)
+        public static bool IsEqual(this byte[] source, int sourcePos, Key[] keys, out Key matchedKey)
         {
-            matchedKey = string.Empty;
+            matchedKey = new(new byte[0], new byte[0]);
 
             bool isValid = false;
 
             for (int k = 0; k < keys.Length; k++)
             {
-                byte[] key = Encoding.Default.GetBytes(keys[k]);
+                for (int n = 0; n < keys[k].Subkeys.Length; n++)
+                {
+                    byte[] key = keys[k].Subkeys[n];
+                    string keyStr = key.ToText();
 
-                isValid = source.IsEqual(sourcePos, key);
+                    isValid = source.IsEqual(sourcePos, key);
+                    if (isValid == true)
+                    {
+                        matchedKey = keys[k];
+                        matchedKey.SelectedSubkey = keys[k].Subkeys[n];
+                        break;
+                    }
+                }
                 if (isValid == true)
                 {
-                    matchedKey = keys[k];
                     break;
                 }
             }
@@ -134,56 +302,84 @@ namespace WinReporter
     public class Key
     {
         public byte[][] Subkeys { get; set; }
+        public string[] SubkeysStr {
+            get => Subkeys.ToTextArray();
+        }
+        public byte[] SelectedSubkey { get; set; }
+        public string SelectedSubkeyStr
+        {
+            get => SelectedSubkey.ToText();
+        }
         public Key(byte[] keys, byte[] subkeySeparator)
         {
             this.Subkeys = keys.Split(subkeySeparator, true);
+            this.SelectedSubkey = new byte[0];
         }
     }
+   
     public class TextParser
     {
+        public Key[] GetKeys(ref string[] keys, string subkeySeparator)
+        {
+            List<Key> LKeys = new();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                LKeys.Add(new(keys[i].ToBytes(), subkeySeparator.ToBytes()));
+            }
+            return (LKeys.ToArray());
+        }
         private byte[] DataSource { get; set; }
-        public string[] Keys { get; set; }
+        public Key[] Keys { get; set; }
 
         public List<Item> Items;
-        public TextParser(ref byte[] dataSource, ref string[] keys)
+        public TextParser(ref byte[] dataSource, string[] keys, string subkeySeparator, bool trimValues = false)
         {
             this.Items = new();
-
-            this.Keys = keys;
+            this.Keys = this.GetKeys(ref keys, subkeySeparator);
+            
             this.DataSource = dataSource;
-            this.Parse();
+            this.Parse(trimValues);
         }
-        private void Parse()
+        private void Parse(bool trimValues)
         {
-            List<string> LKeys = new(this.Keys);
+            List<Key> LKeys = new(this.Keys);
             List<string> LResults = new();
             int resultPos = -1;
-            string resultKey = string.Empty;
+            Key resultKey = new(new byte[0], new byte[0]);
 
             int pos = 0;
             while (pos < this.DataSource.Length)
             {
-                string matchedKey;
+                Key matchedKey;
+
                 if (this.DataSource.IsLetterOrDigit(pos - 1) == false && this.DataSource.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
                 {
                     if (resultPos > -1)
                     {
-                        string? resultStr = Encoding.Default.GetString(this.DataSource.Skip(resultPos).Take(pos - resultPos).ToArray());
+                        string? resultStr = this.DataSource.SelectTextRange(resultPos, pos - resultPos);
                         if (resultStr != null)
                         {
                             LResults.Add(resultStr);
-                            this.Items.Add(new() { Name = resultKey, Value = resultStr.Substring(resultKey.Length).Trim() });
+                            this.Items.Add(new()
+                            {
+                                Name = resultKey.SelectedSubkey.ToText(),
+                                Value = trimValues == false ? resultStr.Substring(resultKey.SelectedSubkey.Length) : resultStr.Substring(resultKey.SelectedSubkey.Length).Trim()
+                            });
                         }
 
                         // Get the last Key
                         if (LKeys.Count == 1)
                         {
                             resultKey = matchedKey;
-                            resultStr = Encoding.Default.GetString(this.DataSource.Skip(pos).Take(this.DataSource.Length - pos).ToArray());
+                            resultStr = this.DataSource.SelectTextRange(pos, this.DataSource.Length - pos);
                             if (resultStr != null)
                             {
                                 LResults.Add(resultStr);
-                                this.Items.Add(new() { Name = resultKey, Value = resultStr.Substring(resultKey.Length).Trim() });
+                                this.Items.Add(new()
+                                {
+                                    Name = matchedKey.SelectedSubkey.ToText(),
+                                    Value = trimValues == false ? resultStr.Substring(matchedKey.SelectedSubkey.Length) : resultStr.Substring(matchedKey.SelectedSubkey.Length).Trim()
+                                });
                             }
                         }
                     }

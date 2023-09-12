@@ -17,16 +17,23 @@ namespace WinReporter
         // The root node.
         private void fMain_Load(object sender, EventArgs e)
         {
-            byte[] data = Encoding.UTF8.GetBytes("Publisher\tMarvel Comics[a]\r\nFirst appearance\tCaptain America Comics #1 (December 20, 1940)[b]\r\nCreated by\tJoe Simon\r\nJack Kirby");
-            string[] keys = new string[] { "Publisher", "First appearance", "Created by" };
-            TextParser a = new(ref data, ref keys);
+            byte[] data = "Publisher\tMarvel Comics[a]\r\nFirst appearance\tCaptain America Comics #1 (December 20, 1940)[b]\r\nCreated by\tJoe Simon\r\nJack Kirby".ToBytes();
+            string[] keys = new string[] { "Publisher|test", "First appearance", "Created by" };
+            TextParser a = new(ref data, keys, "|");
 
-            byte[] testdata = Encoding.Default.GetBytes("a//bb//ccc//dddd//eeeee//");
-            byte[] delimiter = Encoding.Default.GetBytes("/");
-            byte[][] testdatachunks = testdata.Split(delimiter);
-            byte[][] testdatachunks2 = testdata.Split(delimiter, true);
-            string[] testdatachunkstxt = testdatachunks.ToStringArray();
-            string[] testdatachunkstxt2 = testdatachunks2.ToStringArray();
+            byte[] testdata = "a//bb//ccc//dddd//eeeee//".ToBytes();
+            byte[] separator = "/".ToBytes();
+            byte[][] testdatachunks = testdata.Split(separator);
+            byte[][] testdatachunks2 = testdata.Split(separator, true);
+            string[] testdatachunkstxt = testdatachunks.ToTextArray();
+            string[] testdatachunkstxt2 = testdatachunks2.ToTextArray();
+
+            testdata = "a/b!c!".ToBytes();
+            char[] specialChars = new char[2] { '/', '!' };
+            byte[] testDataResult = testdata.EncodeSpecialChars(specialChars);
+            string testDataResultStr = testDataResult.ToText();
+            byte[] decodedTestData = testDataResult.DecodeSpecialChars(new char[] { '!' });
+            string decodedTestDataStr = decodedTestData.ToText();
         }
         
         private string TreeToText(TreeNodeCollection nodes)
@@ -54,7 +61,7 @@ namespace WinReporter
             int dataKeyValueStart = 0;
             int dataKeyValueEnd = 0;
 
-            string textDataStr = Encoding.UTF8.GetString(textData);
+            string textDataStr = textData.ToText();
             while (pos < textData.Length)
             {
                 if (textData[pos] == '<')
@@ -88,7 +95,7 @@ namespace WinReporter
                 if (bracketBalance == 0 && posDataStart > -1 && posDataEnd > -1)
                 {
                     byte[] textDataSelection = textData.Skip(posDataStart).Take(posDataEnd - posDataStart).ToArray();
-                    string textDataSelectionStr = Encoding.UTF8.GetString(textDataSelection);
+                    string textDataSelectionStr = textDataSelection.ToText();
                     TextToTree(textDataSelection);
                     posDataStart = -1;
                     posDataEnd = -1;
@@ -105,7 +112,7 @@ namespace WinReporter
                             dataKeyValueEnd = -1;
 
                             dataValue = new byte[0];
-                            string dataKeyStr = Encoding.UTF8.GetString(dataKey);
+                            string dataKeyStr = dataKey.ToText();
                         }
                         else if (dataKey.Length > 0)
                         {
@@ -114,7 +121,7 @@ namespace WinReporter
                             dataKeyValueEnd = -1;
                             dataKey = new byte[0];
 
-                            string dataValueStr = Encoding.UTF8.GetString(dataValue);
+                            string dataValueStr = dataValue.ToText();
                         }
                     }
                 }
@@ -166,7 +173,7 @@ namespace WinReporter
 
             this.GenerateRandomTree();
             this.ctlTreeText.Text = TreeToText(this.ctlTreeOriginal.Nodes);
-            TextToTree(Encoding.UTF8.GetBytes(this.ctlTreeText.Text));
+            TextToTree(this.ctlTreeText.Text.ToBytes());
         }
     }
 }

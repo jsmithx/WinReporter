@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,6 +18,7 @@ namespace WinReporter
     }
     public static class ArrayExtension
     {
+        public static Encoding TextEncoder = Encoding.Unicode;
         public static string[] ToTextArray(this byte[][] source)
         {
             List<string> chunks = new();
@@ -29,7 +31,7 @@ namespace WinReporter
         }
         public static string ToText(this byte[] source)
         {
-            return(Encoding.Unicode.GetString(source));
+            return(TextEncoder.GetString(source));
         }
         public static byte[] EncodeSpecialChars(this byte[] source, char[] specialChars)
         {
@@ -155,7 +157,7 @@ namespace WinReporter
 
         public static byte[] ToBytes(this string source)
         {
-            return(Encoding.Unicode.GetBytes(source));
+            return(TextEncoder.GetBytes(source));
         }
         public static byte[] SelectByteRange(this byte[] source, int start, int length)
         {

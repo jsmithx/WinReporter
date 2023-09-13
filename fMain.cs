@@ -18,8 +18,9 @@ namespace WinReporter
         private void fMain_Load(object sender, EventArgs e)
         {
             byte[] data = "Publisher\tMarvel Comics[a]\r\nFirst appearance\tCaptain America Comics #1 (December 20, 1940)[b]\r\nCreated by\tJoe Simon\r\nJack Kirby".ToBytes();
-            string[] keys = new string[] { "Publisher|test", "First appearance", "Created by" };
-            TextParser a = new(ref data, TextParser.GetKeys(keys, "|"));
+            string[] keysStr = new string[] { "Publisher<|>test", "First appearance", "Created by" };
+            Key[] keys = TextParser.GetKeys(keysStr, "<|>");
+            TextParser parser = new(ref data, keys);
 
             byte[] testdata = "a//bb//ccc//dddd//eeeee//".ToBytes();
             byte[] separator = "/".ToBytes();

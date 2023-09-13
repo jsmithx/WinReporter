@@ -319,51 +319,36 @@ namespace WinReporter
    
     public class TextParser
     {
-        public Key[] GetKeys(ref string[] keys, string subkeySeparator)
-        {
-            List<Key> LKeys = new();
-            for (int i = 0; i < keys.Length; i++)
-            {
-                LKeys.Add(new(keys[i].ToBytes(), subkeySeparator.ToBytes()));
-            }
-            return (LKeys.ToArray());
-        }
-        private byte[] DataSource { get; set; }
-        public Key[] Keys { get; set; }
-
         public List<Item> Items;
-        public TextParser(ref byte[] dataSource, string[] keys, string subkeySeparator, bool trimValues = false)
+        public TextParser(ref byte[] dataSource, Key[] keys)
         {
             this.Items = new();
-            this.Keys = this.GetKeys(ref keys, subkeySeparator);
-            
-            this.DataSource = dataSource;
-            this.Parse(trimValues);
+            this.Parse(ref dataSource, keys, false);
         }
-        private void Parse(bool trimValues)
+        private void Parse(ref byte[] dataSource, Key[] keys, bool trimValues)
         {
-            List<Key> LKeys = new(this.Keys);
+            List<Key> LKeys = new(keys);
             List<string> LResults = new();
             int resultPos = -1;
             Key resultKey = new(new byte[0], new byte[0]);
 
             int pos = 0;
-            while (pos < this.DataSource.Length)
+            while (pos < dataSource.Length)
             {
                 Key matchedKey;
 
-                if (this.DataSource.IsLetterOrDigit(pos - 1) == false && this.DataSource.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
+                if (dataSource.IsLetterOrDigit(pos - 1) == false && dataSource.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
                 {
                     if (resultPos > -1)
                     {
-                        string? resultStr = this.DataSource.SelectTextRange(resultPos, pos - resultPos);
+                        string? resultStr = dataSource.SelectTextRange(resultPos, pos - resultPos);
                         if (resultStr != null)
                         {
                             LResults.Add(resultStr);
                             this.Items.Add(new()
                             {
                                 Name = resultKey.SelectedSubkey.ToText(),
-                                Value = trimValues == false ? resultStr.Substring(resultKey.SelectedSubkey.Length) : resultStr.Substring(resultKey.SelectedSubkey.Length).Trim()
+                                Value = trimValues == false ? resultStr.Substring(resultKey.SelectedSubkey.ToText().Length) : resultStr.Substring(resultKey.SelectedSubkey.ToText().Length).Trim()
                             });
                         }
 
@@ -371,14 +356,14 @@ namespace WinReporter
                         if (LKeys.Count == 1)
                         {
                             resultKey = matchedKey;
-                            resultStr = this.DataSource.SelectTextRange(pos, this.DataSource.Length - pos);
+                            resultStr = dataSource.SelectTextRange(pos, dataSource.Length - pos);
                             if (resultStr != null)
                             {
                                 LResults.Add(resultStr);
                                 this.Items.Add(new()
                                 {
                                     Name = matchedKey.SelectedSubkey.ToText(),
-                                    Value = trimValues == false ? resultStr.Substring(matchedKey.SelectedSubkey.Length) : resultStr.Substring(matchedKey.SelectedSubkey.Length).Trim()
+                                    Value = trimValues == false ? resultStr.Substring(matchedKey.SelectedSubkey.ToText().Length) : resultStr.Substring(matchedKey.SelectedSubkey.ToText().Length).Trim()
                                 });
                             }
                         }
@@ -391,7 +376,14 @@ namespace WinReporter
                 pos++;
             }
         }
-        
-        
+        public static Key[] GetKeys(string[] keys, string subkeySeparator)
+        {
+            List<Key> LKeys = new();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                LKeys.Add(new(keys[i].ToBytes(), subkeySeparator.ToBytes()));
+            }
+            return (LKeys.ToArray());
+        }
     }
 }

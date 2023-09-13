@@ -18,13 +18,14 @@ namespace WinReporter
         private void fMain_Load(object sender, EventArgs e)
         {
             byte[] data = "Publisher\tMarvel Comics[a]\r\nFirst appearance\tCaptain America Comics #1 (December 20, 1940)[b]\r\nCreated by\tJoe Simon\r\nJack Kirby".ToBytes();
-            string[] keysStr = new string[] { "Publisher<|>test", "First appearance", "Created by" };
-            Key[] keys = TextParser.GetKeys(keysStr, "<|>");
+            string[] keysStr = new string[] { "[0]Publisher[0]test", "[1]First appearance", "[1]Created by" };
+            Key[] keys = TextParser.GetKeys(keysStr, "[1]", "[0]");
+            
             TextParser parser = new(ref data, keys);
 
             byte[] testdata = "a//bb//ccc//dddd//eeeee//".ToBytes();
             byte[] separator = "/".ToBytes();
-            byte[][] testdatachunks = testdata.Split(separator);
+            byte[][] testdatachunks = testdata.Split(separator, false);
             byte[][] testdatachunks2 = testdata.Split(separator, true);
             string[] testdatachunkstxt = testdatachunks.ToTextArray();
             string[] testdatachunkstxt2 = testdatachunks2.ToTextArray();

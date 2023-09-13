@@ -19,6 +19,7 @@ namespace WinReporter
 
     public class Key
     {
+        public bool Enabled { get; set; }
         public byte[][] Subkeys { get; set; }
         public string[] SubkeysStr {
             get => Subkeys.ToTextArray();
@@ -32,9 +33,27 @@ namespace WinReporter
         {
             this.Subkeys = keys.Split(subkeySeparator, true);
             this.SelectedSubkey = new byte[0];
+            this.Enabled = true;
+        }
+        public Key(byte[] keys, byte[][] subkeySeparators, byte[] subkeySeparatorToDisable)
+        {
+            byte[] matchedSeparator = new byte[0];
+            this.Subkeys = keys.Split(subkeySeparators, true, out matchedSeparator);
+            this.SelectedSubkey = new byte[0];
+            this.Enabled = matchedSeparator.SequenceEqual(subkeySeparatorToDisable) == true ? false : true;
         }
     }
-   
+    
+    public class KeyList
+    {
+        Key[] Keys { get; set; }
+        public KeyList(Key[] keys)
+        {
+            this.Keys = keys;
+        }
+    }
+        
+
     public class TextParser
     {
         public List<Item> Items;
@@ -100,6 +119,15 @@ namespace WinReporter
             for (int i = 0; i < keys.Length; i++)
             {
                 LKeys.Add(new(keys[i].ToBytes(), subkeySeparator.ToBytes()));
+            }
+            return (LKeys.ToArray());
+        }
+        public static Key[] GetKeys(string[] keys, string subkeySeparatorEnabled, string subkeySeparatorDisabled)
+        {
+            List<Key> LKeys = new();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                LKeys.Add(new(keys[i].ToBytes(), new byte[][] { subkeySeparatorEnabled.ToBytes(), subkeySeparatorDisabled.ToBytes() }, subkeySeparatorDisabled.ToBytes()));
             }
             return (LKeys.ToArray());
         }

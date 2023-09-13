@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace WinReporter
         }
         public static string ToText(this byte[] source)
         {
-            return (TextEncoder.GetString(source));
+            return(TextEncoder.GetString(source));
         }
         public static byte[] EncodeSpecialChars(this byte[] source, char[] specialChars)
         {
@@ -147,7 +148,7 @@ namespace WinReporter
 
         public static byte[] ToBytes(this string source)
         {
-            return (TextEncoder.GetBytes(source));
+            return(TextEncoder.GetBytes(source));
         }
         public static byte[] SelectByteRange(this byte[] source, int start, int length)
         {
@@ -157,13 +158,66 @@ namespace WinReporter
         {
             return (source.SelectByteRange(start, length).ToText());
         }
-        public static byte[][] Split(this byte[] source, byte[] separator, bool removeEmptyEntries = false)
+        public static byte[][] Split(this byte[] source, byte[][] separators, bool removeEmptyEntries, out byte[] matchedSeparator)
         {
+            matchedSeparator = new byte[0];
+
             List<byte[]> chunks = new();
             int posEnd = 0;
             int posStart = 0;
 
             while (posEnd < source.Length)
+            {
+                //byte[] matchedSeparator;
+
+                bool isEqual = source.IsEqual(posEnd, separators, out matchedSeparator);
+                bool isEndPos = posEnd == source.Length - 1;
+                bool isEndPosDelimiter = false;
+
+                if (isEqual || isEndPos)
+                {
+                    if (isEndPos)
+                    {
+                        if (!isEqual)
+                        {
+                            posEnd++;
+                        }
+                        else
+                        {
+                            isEndPosDelimiter = true;
+                        }
+                    }
+                    byte[] chunk = new byte[posEnd - posStart];
+                    Array.Copy(source, posStart, chunk, 0, chunk.Length);
+                    string chunkStr = chunk.ToText();
+                    if (chunk.Length > 0 || removeEmptyEntries == false)
+                    {
+                        chunks.Add(chunk);
+                    }
+
+                    if (isEndPosDelimiter == true && removeEmptyEntries == false)
+                    {
+                        chunks.Add(new byte[0] { });
+                    }
+                    posEnd += matchedSeparator.Length;
+                    posStart = posEnd;
+                }
+                else
+                {
+                    posEnd++;
+                }
+            }
+            return (chunks.ToArray());
+        }
+
+        public static byte[][] Split(this byte[] source, byte[] separator, bool removeEmptyEntries)
+        {
+            /*
+            List<byte[]> chunks = new();
+            int posEnd = 0;
+            int posStart = 0;
+
+            while(posEnd < source.Length)
             {
                 bool isEqual = source.IsEqual(posEnd, separator);
                 bool isEndPos = posEnd == source.Length - 1;
@@ -173,7 +227,7 @@ namespace WinReporter
                 {
                     if (isEndPos)
                     {
-                        if (!isEqual)
+                        if(!isEqual)
                         {
                             posEnd++;
                         }
@@ -203,8 +257,10 @@ namespace WinReporter
                 }
             }
             return (chunks.ToArray());
+            */
+            return (source.Split(new byte[][] { separator }, removeEmptyEntries, out _));
         }
-
+        
         public static bool IsEqual(this byte[] source, int sourcePos, char[] keyChars, out char matchedChar)
         {
             matchedChar = '\u0000';
@@ -222,7 +278,7 @@ namespace WinReporter
         }
         public static bool IsEqual(this byte[] source, int sourcePos, char keyChar)
         {
-            return (source.IsEqual(sourcePos, BitConverter.GetBytes(keyChar)));
+            return(source.IsEqual(sourcePos, BitConverter.GetBytes(keyChar)));
         }
 
         public static bool IsEqual(this byte[] source, int sourcePos, byte[] key)
@@ -246,6 +302,42 @@ namespace WinReporter
                 }
                 n++;
             }
+            return (isValid);
+        }
+        public static bool IsEqual(this byte[] source, int sourcePos, byte[][] keys, out byte[] matchedKey)
+        {
+            matchedKey = new byte[0];
+            bool isValid = true;
+
+            for (int k = 0; k < keys.Length; k++)
+            {
+                isValid = true;
+                int n = 0;
+
+                for (int i = sourcePos; i < source.Length; i++)
+                {
+                    if (n < keys[k].Length)
+                    {
+                        if (keys[k][n] != source[i])
+                        {
+                            isValid = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        isValid = true;
+                        break;
+                    }
+                    n++;
+                }
+                if (isValid == true)
+                {
+                    matchedKey = keys[k];
+                    break;
+                }
+            }
+
             return (isValid);
         }
         public static bool IsEqual(this byte[] source, int sourcePos, Key[] keys, out Key matchedKey)

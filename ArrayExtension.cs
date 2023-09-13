@@ -342,7 +342,7 @@ namespace WinReporter
         }
         public static bool IsEqual(this byte[] source, int sourcePos, Key[] keys, out Key matchedKey)
         {
-            matchedKey = new(new byte[0], new byte[0]);
+            matchedKey = new(new byte[0], new byte[0], false);
 
             bool isValid = false;
 

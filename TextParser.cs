@@ -29,18 +29,18 @@ namespace WinReporter
         {
             get => SelectedSubkey.ToText();
         }
-        public Key(byte[] keys, byte[] subkeySeparator)
+        public Key(byte[] keys, byte[] subkeySeparator, bool enabled)
         {
             this.Subkeys = keys.Split(subkeySeparator, true);
             this.SelectedSubkey = new byte[0];
-            this.Enabled = true;
+            this.Enabled = enabled;
         }
-        public Key(byte[] keys, byte[][] subkeySeparators, byte[] subkeySeparatorToDisable)
+        public Key(byte[] keys, byte[][] subkeySeparators, bool enabled)
         {
             byte[] matchedSeparator = new byte[0];
             this.Subkeys = keys.Split(subkeySeparators, true, out matchedSeparator);
             this.SelectedSubkey = new byte[0];
-            this.Enabled = matchedSeparator.SequenceEqual(subkeySeparatorToDisable) == true ? false : true;
+            this.Enabled = enabled;
         }
     }
     
@@ -67,7 +67,7 @@ namespace WinReporter
             List<Key> LKeys = new(keys);
             List<string> LResults = new();
             int resultPos = -1;
-            Key resultKey = new(new byte[0], new byte[0]);
+            Key resultKey = new(new byte[0], new byte[0], false);
 
             int pos = 0;
             while (pos < dataSource.Length)
@@ -113,21 +113,34 @@ namespace WinReporter
                 pos++;
             }
         }
-        public static Key[] GetKeys(string[] keys, string subkeySeparator)
+        public static Key[] GetKeys(string[] keys, string subkeySeparator, string tagToDisable)
         {
             List<Key> LKeys = new();
+            bool enabled;
+
             for (int i = 0; i < keys.Length; i++)
             {
-                LKeys.Add(new(keys[i].ToBytes(), subkeySeparator.ToBytes()));
-            }
-            return (LKeys.ToArray());
-        }
-        public static Key[] GetKeys(string[] keys, string subkeySeparatorEnabled, string subkeySeparatorDisabled)
-        {
-            List<Key> LKeys = new();
-            for (int i = 0; i < keys.Length; i++)
-            {
-                LKeys.Add(new(keys[i].ToBytes(), new byte[][] { subkeySeparatorEnabled.ToBytes(), subkeySeparatorDisabled.ToBytes() }, subkeySeparatorDisabled.ToBytes()));
+                byte[] keyBytes = keys[i].ToBytes();
+                byte[] keyBytesModified; 
+                byte[] tagToDisableBytes = tagToDisable.ToBytes();
+                int sourceStart = tagToDisableBytes.Length;
+
+                if (keyBytes.IsEqual(0, tagToDisableBytes))
+                {
+                    keyBytesModified = new byte[keyBytes.Length - tagToDisableBytes.Length];
+                    sourceStart = tagToDisableBytes.Length;
+                    enabled = false;
+                }
+                else
+                {
+                    keyBytesModified = new byte[keyBytes.Length];
+                    sourceStart = 0;
+                    enabled = true;
+                }
+
+                Array.Copy(keyBytes, sourceStart, keyBytesModified, 0, keyBytesModified.Length);
+
+                LKeys.Add(new(keyBytesModified, new byte[][] { subkeySeparator.ToBytes() }, enabled));
             }
             return (LKeys.ToArray());
         }

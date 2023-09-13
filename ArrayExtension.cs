@@ -168,8 +168,6 @@ namespace WinReporter
 
             while (posEnd < source.Length)
             {
-                //byte[] matchedSeparator;
-
                 bool isEqual = source.IsEqual(posEnd, separators, out matchedSeparator);
                 bool isEndPos = posEnd == source.Length - 1;
                 bool isEndPosDelimiter = false;
@@ -212,52 +210,6 @@ namespace WinReporter
 
         public static byte[][] Split(this byte[] source, byte[] separator, bool removeEmptyEntries)
         {
-            /*
-            List<byte[]> chunks = new();
-            int posEnd = 0;
-            int posStart = 0;
-
-            while(posEnd < source.Length)
-            {
-                bool isEqual = source.IsEqual(posEnd, separator);
-                bool isEndPos = posEnd == source.Length - 1;
-                bool isEndPosDelimiter = false;
-
-                if (isEqual || isEndPos)
-                {
-                    if (isEndPos)
-                    {
-                        if(!isEqual)
-                        {
-                            posEnd++;
-                        }
-                        else
-                        {
-                            isEndPosDelimiter = true;
-                        }
-                    }
-                    byte[] chunk = new byte[posEnd - posStart];
-                    Array.Copy(source, posStart, chunk, 0, chunk.Length);
-                    string chunkStr = chunk.ToText();
-                    if (chunk.Length > 0 || removeEmptyEntries == false)
-                    {
-                        chunks.Add(chunk);
-                    }
-
-                    if (isEndPosDelimiter == true && removeEmptyEntries == false)
-                    {
-                        chunks.Add(new byte[0] { });
-                    }
-                    posEnd += separator.Length;
-                    posStart = posEnd;
-                }
-                else
-                {
-                    posEnd++;
-                }
-            }
-            return (chunks.ToArray());
-            */
             return (source.Split(new byte[][] { separator }, removeEmptyEntries, out _));
         }
         
@@ -340,9 +292,9 @@ namespace WinReporter
 
             return (isValid);
         }
-        public static bool IsEqual(this byte[] source, int sourcePos, Key[] keys, out Key matchedKey)
+        public static bool IsEqual(this byte[] source, int sourcePos, TextKey[] keys, out TextKey matchedTextKey)
         {
-            matchedKey = new(new byte[0], new byte[0], false);
+            matchedTextKey = TextKey.Empty;
 
             bool isValid = false;
 
@@ -356,8 +308,8 @@ namespace WinReporter
                     isValid = source.IsEqual(sourcePos, key);
                     if (isValid == true)
                     {
-                        matchedKey = keys[k];
-                        matchedKey.SelectedSubkey = keys[k].Subkeys[n];
+                        matchedTextKey = keys[k];
+                        matchedTextKey.SelectedSubkey = keys[k].Subkeys[n];
                         break;
                     }
                 }

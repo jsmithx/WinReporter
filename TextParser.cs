@@ -11,31 +11,33 @@ using System.Windows.Forms;
 
 namespace WinReporter
 {
-    public struct Item
+    public struct TextItem
     {
         public string Name { get; set; }
         public string Value { get; set; }
     }
 
-    public class Key
+    public class TextKey
     {
         public bool Enabled { get; set; }
         public byte[][] Subkeys { get; set; }
         public string[] SubkeysStr {
             get => Subkeys.ToTextArray();
         }
+        public static TextKey Empty { get => new TextKey(new byte[0], new byte[0], false); }
+
         public byte[] SelectedSubkey { get; set; }
         public string SelectedSubkeyStr
         {
             get => SelectedSubkey.ToText();
         }
-        public Key(byte[] keys, byte[] subkeySeparator, bool enabled)
+        public TextKey(byte[] keys, byte[] subkeySeparator, bool enabled)
         {
             this.Subkeys = keys.Split(subkeySeparator, true);
             this.SelectedSubkey = new byte[0];
             this.Enabled = enabled;
         }
-        public Key(byte[] keys, byte[][] subkeySeparators, bool enabled)
+        public TextKey(byte[] keys, byte[][] subkeySeparators, bool enabled)
         {
             byte[] matchedSeparator = new byte[0];
             this.Subkeys = keys.Split(subkeySeparators, true, out matchedSeparator);
@@ -46,43 +48,43 @@ namespace WinReporter
     
     public class KeyList
     {
-        Key[] Keys { get; set; }
-        public KeyList(Key[] keys)
+        TextKey[] TextKeys { get; set; }
+        public KeyList(TextKey[] textKeys)
         {
-            this.Keys = keys;
+            this.TextKeys = textKeys;
         }
     }
         
 
     public class TextParser
     {
-        public List<Item> Items;
-        public TextParser(ref byte[] dataSource, Key[] keys)
+        public List<TextItem> TextItems;
+        public TextParser(ref byte[] dataSource, TextKey[] textKeys)
         {
-            this.Items = new();
-            this.Parse(ref dataSource, keys, false);
+            this.TextItems = new();
+            this.Parse(ref dataSource, textKeys, false);
         }
-        private void Parse(ref byte[] dataSource, Key[] keys, bool trimValues)
+        private void Parse(ref byte[] dataSource, TextKey[] textKeys, bool trimValues)
         {
-            List<Key> LKeys = new(keys);
+            List<TextKey> LKeys = new(textKeys);
             List<string> LResults = new();
             int resultPos = -1;
-            Key resultKey = new(new byte[0], new byte[0], false);
+            TextKey resultKey = TextKey.Empty;
 
             int pos = 0;
             while (pos < dataSource.Length)
             {
-                Key matchedKey;
+                TextKey matchedKey;
 
                 if (dataSource.IsLetterOrDigit(pos - 1) == false && dataSource.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
                 {
                     if (resultPos > -1)
                     {
                         string? resultStr = dataSource.SelectTextRange(resultPos, pos - resultPos);
-                        if (resultStr != null)
+                        if (resultStr != null && resultKey.Enabled == true)
                         {
                             LResults.Add(resultStr);
-                            this.Items.Add(new()
+                            this.TextItems.Add(new()
                             {
                                 Name = resultKey.SelectedSubkey.ToText(),
                                 Value = trimValues == false ? resultStr.Substring(resultKey.SelectedSubkey.ToText().Length) : resultStr.Substring(resultKey.SelectedSubkey.ToText().Length).Trim()
@@ -94,10 +96,10 @@ namespace WinReporter
                         {
                             resultKey = matchedKey;
                             resultStr = dataSource.SelectTextRange(pos, dataSource.Length - pos);
-                            if (resultStr != null)
+                            if (resultStr != null && resultKey.Enabled == true)
                             {
                                 LResults.Add(resultStr);
-                                this.Items.Add(new()
+                                this.TextItems.Add(new()
                                 {
                                     Name = matchedKey.SelectedSubkey.ToText(),
                                     Value = trimValues == false ? resultStr.Substring(matchedKey.SelectedSubkey.ToText().Length) : resultStr.Substring(matchedKey.SelectedSubkey.ToText().Length).Trim()
@@ -113,9 +115,9 @@ namespace WinReporter
                 pos++;
             }
         }
-        public static Key[] GetKeys(string[] keys, string subkeySeparator, string tagToDisable)
+        public static TextKey[] GetKeys(string[] keys, string subkeySeparator, string tagToDisable)
         {
-            List<Key> LKeys = new();
+            List<TextKey> LKeys = new();
             bool enabled;
 
             for (int i = 0; i < keys.Length; i++)

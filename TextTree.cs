@@ -18,6 +18,8 @@ namespace WinReporter
 
         private TextNode? _Parent;
         public TextNode? Parent { get => this._Parent; }
+        private int _Level;
+        public int Level { get => this._Level; }
         public string Name { get; set; }
         public string Text { get; set; }
         public int ImageIndex { get; set; }
@@ -29,6 +31,14 @@ namespace WinReporter
             this.Text = text;
             this.ImageIndex = -1;
             this._Parent = parent;
+            if (this._Parent != null)
+            {
+                this._Level = this._Parent._Level + 1;
+            }
+            else
+            {
+                this._Level = 0;
+            }
         }
         public TextNode(string name, string text)
         {
@@ -37,6 +47,7 @@ namespace WinReporter
             this.Text = text;
             this.ImageIndex = -1;
             this._Parent = null;
+            this._Level = 0;
         }
     }
     public class SortedTextNodeComparer : IComparer<TextNode>
@@ -64,7 +75,7 @@ namespace WinReporter
         public TextNode Add(string name, string text)
         {
             TextNode textNode = new TextNode(this.Parent, name, text);
-
+            
             this.Add(textNode);
 
             return (textNode);
@@ -103,6 +114,18 @@ namespace WinReporter
         public TextTree()
         {
             this.TextNodes = new(null);
+        }
+
+        public string SerializeTextTree()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            
+            foreach(TextNode textNode in this.TextNodes)
+            {
+
+            }
+
+            return (stringBuilder.ToString());
         }
     }
 }

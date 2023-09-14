@@ -41,6 +41,7 @@ namespace WinReporter
             TextNode node1 = tree.TextNodes.Add("nameA", "textA");
             TextNode node2 = tree.TextNodes.Add("nameD", "textD");
             TextNode node3 = tree.TextNodes.Add("nameB", "textB");
+
             node1.TextNodes.Add("name1", "text1");
             node1.TextNodes.Add("name2", "text2");
 

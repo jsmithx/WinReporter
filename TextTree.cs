@@ -30,6 +30,14 @@ namespace WinReporter
             this.ImageIndex = -1;
             this._Parent = parent;
         }
+        public TextNode(string name, string text)
+        {
+            this.TextNodes = new(this);
+            this.Name = name;
+            this.Text = text;
+            this.ImageIndex = -1;
+            this._Parent = null;
+        }
     }
     public class SortedTextNodeComparer : IComparer<TextNode>
     {

@@ -21,9 +21,7 @@ namespace WinReporter
     {
         public bool Enabled { get; set; }
         public byte[][] Subkeys { get; set; }
-        public string[] SubkeysStr {
-            get => Subkeys.ToTextArray();
-        }
+        public string[] SubkeysStr { get => Subkeys.ToTextArray(); }
         public static TextKey Empty { get => new TextKey(new byte[0], new byte[0], false); }
 
         public byte[] SelectedSubkey { get; set; }

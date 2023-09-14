@@ -36,6 +36,22 @@ namespace WinReporter
             string testDataResultStr = testDataResult.ToText();
             byte[] decodedTestData = testDataResult.DecodeSpecialChars(new char[] { '!' });
             string decodedTestDataStr = decodedTestData.ToText();
+
+            TextTree tree = new();
+            TextNode node1 = tree.TextNodes.Add("nameA", "textA");
+            TextNode node2 = tree.TextNodes.Add("nameD", "textD");
+            TextNode node3 = tree.TextNodes.Add("nameB", "textB");
+            node1.TextNodes.Add("name1", "text1");
+            node1.TextNodes.Add("name2", "text2");
+
+            TextNode node1Copy = tree.TextNodes["nameAB"].TextNodes["name2"];
+
+            foreach (TextNode node in tree.TextNodes)
+            {
+                string name = node.Name;
+                TextNodeCollection textNodes = node.TextNodes;
+            }
+
         }
         
         private string TreeToText(TreeNodeCollection nodes)

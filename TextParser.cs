@@ -46,16 +46,6 @@ namespace WinReporter
         }
     }
     
-    public class KeyList
-    {
-        TextKey[] TextKeys { get; set; }
-        public KeyList(TextKey[] textKeys)
-        {
-            this.TextKeys = textKeys;
-        }
-    }
-        
-
     public class TextParser
     {
         public List<TextItem> TextItems;

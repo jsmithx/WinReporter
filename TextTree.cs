@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Collections;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using System.Collections.ObjectModel;
 
 namespace WinReporter
 {
@@ -76,8 +77,14 @@ namespace WinReporter
             return (result);
         }
     }
-
-    public class TextNodeCollection : HashSet<TextNode>
+    public class OrderedHashSet : KeyedCollection<TextNode, TextNode>
+    {
+        protected override TextNode GetKeyForItem(TextNode item)
+        {
+            return item;
+        }
+    }
+    public class TextNodeCollection : OrderedHashSet //HashSet<TextNode>
     {
         private TextNode? Parent { get; set; }
 

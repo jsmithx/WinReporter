@@ -38,18 +38,18 @@ namespace WinReporter
             string decodedTestDataStr = decodedTestData.ToText();
 
             TextTree tree = new();
-            TextNode node1 = tree.TextNodes.Add("nameA", "textA");
-            TextNode node2 = tree.TextNodes.Add("nameD", "textD");
-            TextNode node3 = tree.TextNodes.Add("nameB", "textB");
+            TextNode? node1 = tree.TextNodes.Add("nameA", "textA");
+            TextNode? node2 = tree.TextNodes.Add("nameD", "textD");
+            TextNode? node3 = tree.TextNodes.Add("nameB", "textB");
 
-            TextNode node4 = node1.TextNodes.Add("name1", "text1");
-            TextNode node5 = node1.TextNodes.Add("name2", "text2");
+            TextNode? node4 = node1.TextNodes.Add("name1", "text1");
+            TextNode? node5 = node1.TextNodes.Add("name2", "text2");
 
-            node4.TextNodes.Add("name11", "text11");
+            node4?.TextNodes.Add("name11", "text11");
             
-            TextNode node1Copy = tree.TextNodes["nameA"];
+            TextNode? node1Copy = tree.TextNodes["nameA"];
 
-            TextNode node2Copy = tree.TextNodes["nameA"].TextNodes["name2"];
+            TextNode? node2Copy = tree.TextNodes["nameA"]?.TextNodes["name2"];
 
             foreach (TextNode node in tree.TextNodes)
             {

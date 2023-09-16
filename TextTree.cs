@@ -17,16 +17,20 @@ namespace WinReporter
 
     public class TextNode
     {
-        public static TextNode Empty { get => new(TextNode.Empty, string.Empty, string.Empty); }
+        public static TextNode? Empty { get => null; }
 
         private TextNode? _Parent = null;
         public TextNode? Parent { get => this._Parent; }
         private int _Level = 0;
         public int Level { get => this._Level; }
-        public string Name { get { return string.Empty; } set { Name = value; } }
-        public string Text { get { return string.Empty; } set { Text = value; } }
-        public string ImageKey { get { return string.Empty; } set { ImageKey = value; } }
-        public TextNodeCollection TextNodes { get { return TextNodeCollection.Empty; } set { TextNodes = value; } }
+        private string _Name = string.Empty;
+        public string Name { get { return this._Name; } set { this._Name = value; } }
+        private string _Text = string.Empty;
+        public string Text { get { return this._Text; } set { this._Text = value; } }
+        string _ImageKey = string.Empty;
+        public string ImageKey { get { return this._ImageKey; } set { this._ImageKey= value; } }
+        TextNodeCollection _TextNodes = new(null);
+        public TextNodeCollection TextNodes { get { return this._TextNodes; } set{ this._TextNodes = value; } }
         public TextNode(TextNode? parent, string name, string text)
         {
             this.Initialize(parent, name, text, string.Empty);
@@ -41,7 +45,6 @@ namespace WinReporter
         }
         private void Initialize(TextNode? parent, string name, string text, string imageKey)
         {
-            this.TextNodes = new(this);
             this.Name = name;
             this.Text = text;
             this.ImageKey = ImageKey;
@@ -73,20 +76,12 @@ namespace WinReporter
             return (result);
         }
     }
-    public class TextNodeTable : Hashtable
-    {
-        Hashtable a = new();
-        public void b()
-        {
-            
-        }
-    }
+
     public class TextNodeCollection : HashSet<TextNode>
     {
-        public static TextNodeCollection Empty { get => new(TextNode.Empty); }
         private TextNode? Parent { get; set; }
 
-        public virtual TextNode this[string name] => this.GetTextNode(name);
+        public virtual TextNode? this[string name] => this.GetTextNode(name);
         public TextNodeCollection(TextNode? parent)
         {
             this.Parent = parent;
@@ -104,7 +99,7 @@ namespace WinReporter
             base.Add(textNode);
         }
         
-        internal TextNode GetTextNode(string name)
+        internal TextNode? GetTextNode(string name)
         {
             if (this.Count == 0) { return (TextNode.Empty); }
 

@@ -8,6 +8,9 @@ using System.Xml.Linq;
 using System.Runtime.CompilerServices;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Collections;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace WinReporter
 {
@@ -16,20 +19,32 @@ namespace WinReporter
     {
         public static TextNode Empty { get => new(TextNode.Empty, string.Empty, string.Empty); }
 
-        private TextNode? _Parent;
+        private TextNode? _Parent = null;
         public TextNode? Parent { get => this._Parent; }
-        private int _Level;
+        private int _Level = 0;
         public int Level { get => this._Level; }
-        public string Name { get; set; }
-        public string Text { get; set; }
-        public int ImageIndex { get; set; }
-        public TextNodeCollection TextNodes { get; set; }
+        public string Name { get { return string.Empty; } set { Name = value; } }
+        public string Text { get { return string.Empty; } set { Text = value; } }
+        public string ImageKey { get { return string.Empty; } set { ImageKey = value; } }
+        public TextNodeCollection TextNodes { get { return TextNodeCollection.Empty; } set { TextNodes = value; } }
         public TextNode(TextNode? parent, string name, string text)
+        {
+            this.Initialize(parent, name, text, string.Empty);
+        }
+        public TextNode(string name, string text)
+        {
+            this.Initialize(null, name, text, string.Empty);
+        }
+        public TextNode(string name, string text, string imageKey)
+        {
+            this.Initialize(null, name, text, imageKey);
+        }
+        private void Initialize(TextNode? parent, string name, string text, string imageKey)
         {
             this.TextNodes = new(this);
             this.Name = name;
             this.Text = text;
-            this.ImageIndex = -1;
+            this.ImageKey = ImageKey;
             this._Parent = parent;
             if (this._Parent != null)
             {
@@ -40,16 +55,8 @@ namespace WinReporter
                 this._Level = 0;
             }
         }
-        public TextNode(string name, string text)
-        {
-            this.TextNodes = new(this);
-            this.Name = name;
-            this.Text = text;
-            this.ImageIndex = -1;
-            this._Parent = null;
-            this._Level = 0;
-        }
     }
+
     public class SortedTextNodeComparer : IComparer<TextNode>
     {
         public int Compare(TextNode? x, TextNode? y)
@@ -66,12 +73,24 @@ namespace WinReporter
             return (result);
         }
     }
-    
-    public class TextNodeCollection : List<TextNode>
+    public class TextNodeTable : Hashtable
+    {
+        Hashtable a = new();
+        public void b()
+        {
+            
+        }
+    }
+    public class TextNodeCollection : HashSet<TextNode>
     {
         public static TextNodeCollection Empty { get => new(TextNode.Empty); }
         private TextNode? Parent { get; set; }
+
         public virtual TextNode this[string name] => this.GetTextNode(name);
+        public TextNodeCollection(TextNode? parent)
+        {
+            this.Parent = parent;
+        }
         public TextNode Add(string name, string text)
         {
             TextNode textNode = new TextNode(this.Parent, name, text);
@@ -80,23 +99,17 @@ namespace WinReporter
 
             return (textNode);
         }
-        public TextNodeCollection(TextNode? parent)
-        {
-            this.Parent = parent;
-        }
         internal new void Add(TextNode textNode)
         {
-            int i = this.BinarySearch(textNode, new SortedTextNodeComparer());
-            base.Insert(~i, textNode);
+            base.Add(textNode);
         }
         
         internal TextNode GetTextNode(string name)
         {
             if (this.Count == 0) { return (TextNode.Empty); }
 
-            int i = ~this.BinarySearch(new TextNode(TextNode.Empty, name, string.Empty), new SortedTextNodeComparer());
-
-            TextNode? textNode = this[i];
+            TextNode? textNode = this.Where(w => w.Name == name).FirstOrDefault();
+            
             if (textNode != null)
             {
                 return (textNode);

@@ -12,6 +12,7 @@ using System.Collections;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Collections.ObjectModel;
+using System.Threading.Channels;
 
 namespace WinReporter
 {
@@ -20,6 +21,8 @@ namespace WinReporter
     {
         public static TextNode? Empty { get => null; }
 
+        private int _Index = -1;
+        public int Index { get => this._Index; }
         private TextNode? _Parent = null;
         public TextNode? Parent { get => this._Parent; }
         private int _Level = 0;
@@ -104,6 +107,17 @@ namespace WinReporter
         internal new void Add(TextNode textNode)
         {
             base.Add(textNode);
+        }
+        public bool Remove(string key)
+        {
+            TextNode? textNode = this[key];
+            if (textNode != null)
+            {
+                TextNode item = (TextNode)textNode;
+                this.Remove(item);
+                return (true);
+            }
+            return (false);
         }
         
         internal TextNode? GetTextNode(string name)

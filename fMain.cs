@@ -50,12 +50,20 @@ namespace WinReporter
             TextNode? node1Copy = tree.TextNodes["nameA"];
 
             TextNode? node2Copy = tree.TextNodes["nameA"]?.TextNodes["name2"];
-            
+
             foreach (TextNode node in tree.TextNodes)
             {
                 string name = node.Name;
                 TextNodeCollection textNodes = node.TextNodes;
             }
+
+            string treeText = string.Empty;
+            for (int i = 0; i < tree.TextNodes.Count; i++)
+            {
+                treeText += " | " + tree.TextNodes[i].Name;
+            }
+            tree.TextNodes.Remove("nameD");
+
 
         }
         

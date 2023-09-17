@@ -80,18 +80,18 @@ namespace WinReporter
             return (result);
         }
     }
-    public class OrderedHashSet : KeyedCollection<TextNode, TextNode>
+    public class OrderedHashSet : KeyedCollection<string, TextNode>
     {
-        protected override TextNode GetKeyForItem(TextNode item)
+        protected override string GetKeyForItem(TextNode item)
         {
-            return item;
+            return item.Name;
         }
     }
     public class TextNodeCollection : OrderedHashSet //HashSet<TextNode>
     {
         private TextNode? Parent { get; set; }
 
-        public virtual TextNode? this[string name] => this.GetTextNode(name);
+        public virtual TextNode? this[TextNode textNode] => this.GetSimilarTextNode(textNode);
         public TextNodeCollection(TextNode? parent)
         {
             this.Parent = parent;
@@ -108,23 +108,12 @@ namespace WinReporter
         {
             base.Add(textNode);
         }
-        public bool Remove(string key)
-        {
-            TextNode? textNode = this[key];
-            if (textNode != null)
-            {
-                TextNode item = (TextNode)textNode;
-                this.Remove(item);
-                return (true);
-            }
-            return (false);
-        }
         
-        internal TextNode? GetTextNode(string name)
+        internal TextNode? GetSimilarTextNode(TextNode textNode)
         {
             if (this.Count == 0) { return (TextNode.Empty); }
 
-            TextNode? textNode = this.Where(w => w.Name == name).FirstOrDefault();
+            TextNode? result = this.Where(w => w.Name == textNode.Name && w.Text == textNode.Text).FirstOrDefault();
             
             if (textNode != null)
             {

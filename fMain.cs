@@ -62,9 +62,6 @@ namespace WinReporter
             {
                 treeText += " | " + tree.TextNodes[i].Name;
             }
-            tree.TextNodes.Remove("nameD");
-
-
         }
         
         private string TreeToText(TreeNodeCollection nodes)

@@ -26,7 +26,7 @@ namespace WinReporter
         public int Index { get => this._Index; }
         private TextNode? _Parent;
         public TextNode? Parent { get => this._Parent; }
-        private int _Level = 0;
+        private int _Level;
         public int Level { get => this._Level; }
         private string _Name = string.Empty;
         public string Name { get { return this._Name; } set { this._Name = value; } }
@@ -40,6 +40,7 @@ namespace WinReporter
         {
             this._TextNodes = new(parent);
             this._Parent = parent;
+            this._Level = parent != null ? parent.Level + 1 : 0;
             this.Initialize(name, text, string.Empty);
         }
         public TextNode(string name, string text)
@@ -57,6 +58,8 @@ namespace WinReporter
             this.Name = name;
             this.Text = text;
             this.ImageKey = ImageKey;
+            
+            /*
             if (this._Parent != null)
             {
                 this._Level = this._Parent._Level + 1;
@@ -65,6 +68,7 @@ namespace WinReporter
             {
                 this._Level = 0;
             }
+            */
         }
     }
 
@@ -110,7 +114,7 @@ namespace WinReporter
             }
             else
             {
-                textNode = new TextNode(name, text);
+                textNode = new TextNode(this.Parent, name, text);
             }
 
             this.Add(textNode);
@@ -129,6 +133,19 @@ namespace WinReporter
             TextNode? result = this.Where(w => w.Name == textNode.Name && w.Text == textNode.Text).FirstOrDefault();
             return (result);
         }
+
+        public string Serialize()
+        {
+            StringBuilder lines = new();
+
+            for (int i = 0; i < this.Items.Count; i++)
+            {
+                TextNode node = this.Items[i];
+                lines.Append("<" + "level=" + node.Level + " name=(" + node.Name + ") text=(" + node.Text + ")" + ">" + Environment.NewLine);
+                lines.Append(node.TextNodes.Serialize());
+            }
+            return (lines.ToString());
+        }
     }
 
     public class TextTree
@@ -137,18 +154,6 @@ namespace WinReporter
         public TextTree()
         {
             this.TextNodes = new(null);
-        }
-
-        public static string Serialize(TextNodeCollection nodes)
-        {
-            StringBuilder lines = new();
-
-            foreach (TextNode node in nodes)
-            {
-                lines.Append("<" + "level=" + node.Level + " name=(" + node.Name + ") text=(" + node.Text + ")" + ">" + Environment.NewLine);
-                lines.Append(Serialize(node.TextNodes));
-            }
-            return (lines.ToString());
         }
     }
 }

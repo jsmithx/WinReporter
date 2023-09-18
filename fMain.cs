@@ -38,14 +38,14 @@ namespace WinReporter
             string decodedTestDataStr = decodedTestData.ToText();
 
             TextTree tree = new();
-            TextNode? node1 = tree.TextNodes.Add("nameA", "textA");
-            TextNode? node2 = tree.TextNodes.Add("nameD", "textD");
-            TextNode? node3 = tree.TextNodes.Add("nameB", "textB");
+            TextNode? node1 = tree.TextNodes.Add("grandpaA", "grandpaTextA");
+            TextNode? node2 = tree.TextNodes.Add("grandpaD", "grandpaTextD");
+            TextNode? node3 = tree.TextNodes.Add("grandpaB", "grandpaTextB");
 
-            TextNode? node4 = node1.TextNodes.Add("name1", "text1");
-            TextNode? node5 = node1.TextNodes.Add("name2", "text2");
+            TextNode? node4 = node1.TextNodes.Add("father1", "fatherText1");
+            TextNode? node5 = node1.TextNodes.Add("father2", "fatherText2");
 
-            node4?.TextNodes.Add("name11", "text11");
+            TextNode? node6 = node4?.TextNodes.Add("child11", "childText11");
             
             TextNode? node1Copy = tree.TextNodes["nameA"];
 
@@ -57,7 +57,7 @@ namespace WinReporter
                 TextNodeCollection textNodes = node.TextNodes;
             }
 
-            string treeText = TextTree.Serialize(tree.TextNodes);
+            string treeText = tree.TextNodes.Serialize();
         }
         
         private string TreeToText(TreeNodeCollection nodes)

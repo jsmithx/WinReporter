@@ -57,11 +57,7 @@ namespace WinReporter
                 TextNodeCollection textNodes = node.TextNodes;
             }
 
-            string treeText = string.Empty;
-            for (int i = 0; i < tree.TextNodes.Count; i++)
-            {
-                treeText += " | " + tree.TextNodes[i].Name;
-            }
+            string treeText = TextTree.Serialize(tree.TextNodes);
         }
         
         private string TreeToText(TreeNodeCollection nodes)

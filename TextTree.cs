@@ -13,6 +13,7 @@ using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Collections.ObjectModel;
 using System.Threading.Channels;
+using System.Reflection;
 
 namespace WinReporter
 {
@@ -23,7 +24,7 @@ namespace WinReporter
 
         private int _Index = -1;
         public int Index { get => this._Index; }
-        private TextNode? _Parent = null;
+        private TextNode? _Parent;
         public TextNode? Parent { get => this._Parent; }
         private int _Level = 0;
         public int Level { get => this._Level; }
@@ -33,26 +34,29 @@ namespace WinReporter
         public string Text { get { return this._Text; } set { this._Text = value; } }
         string _ImageKey = string.Empty;
         public string ImageKey { get { return this._ImageKey; } set { this._ImageKey= value; } }
-        TextNodeCollection _TextNodes = new(null);
+        TextNodeCollection _TextNodes;
         public TextNodeCollection TextNodes { get { return this._TextNodes; } set{ this._TextNodes = value; } }
         public TextNode(TextNode? parent, string name, string text)
         {
-            this.Initialize(parent, name, text, string.Empty);
+            this._TextNodes = new(parent);
+            this._Parent = parent;
+            this.Initialize(name, text, string.Empty);
         }
         public TextNode(string name, string text)
         {
-            this.Initialize(null, name, text, string.Empty);
+            this._TextNodes = new(this);
+            this.Initialize(name, text, string.Empty);
         }
         public TextNode(string name, string text, string imageKey)
         {
-            this.Initialize(null, name, text, imageKey);
+            this._TextNodes = new(this);
+            this.Initialize(name, text, imageKey);
         }
-        private void Initialize(TextNode? parent, string name, string text, string imageKey)
+        private void Initialize(string name, string text, string imageKey)
         {
             this.Name = name;
             this.Text = text;
             this.ImageKey = ImageKey;
-            this._Parent = parent;
             if (this._Parent != null)
             {
                 this._Level = this._Parent._Level + 1;
@@ -98,8 +102,17 @@ namespace WinReporter
         }
         public TextNode Add(string name, string text)
         {
-            TextNode textNode = new TextNode(this.Parent, name, text);
-            
+
+            TextNode textNode;
+            if(this.Parent != null)
+            {
+                textNode = new TextNode(this.Parent, name, text);
+            }
+            else
+            {
+                textNode = new TextNode(name, text);
+            }
+
             this.Add(textNode);
 
             return (textNode);
@@ -114,15 +127,7 @@ namespace WinReporter
             if (this.Count == 0) { return (TextNode.Empty); }
 
             TextNode? result = this.Where(w => w.Name == textNode.Name && w.Text == textNode.Text).FirstOrDefault();
-            
-            if (textNode != null)
-            {
-                return (textNode);
-            }
-            else
-            {
-                return (TextNode.Empty);
-            }
+            return (result);
         }
     }
 
@@ -134,16 +139,16 @@ namespace WinReporter
             this.TextNodes = new(null);
         }
 
-        public string SerializeTextTree()
+        public static string Serialize(TextNodeCollection nodes)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            
-            foreach(TextNode textNode in this.TextNodes)
+            StringBuilder lines = new();
+
+            foreach (TextNode node in nodes)
             {
-
+                lines.Append("<" + "level=" + node.Level + " name=(" + node.Name + ") text=(" + node.Text + ")" + ">" + Environment.NewLine);
+                lines.Append(Serialize(node.TextNodes));
             }
-
-            return (stringBuilder.ToString());
+            return (lines.ToString());
         }
     }
 }

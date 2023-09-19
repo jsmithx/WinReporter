@@ -22,8 +22,6 @@ namespace WinReporter
     {
         public static TextNode? Empty { get => null; }
 
-        private int _Index = -1;
-        public int Index { get => this._Index; }
         private TextNode? _Parent;
         public TextNode? Parent { get => this._Parent; }
         private int _Level;

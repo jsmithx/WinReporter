@@ -47,9 +47,9 @@ namespace WinReporter
 
             TextNode? node6 = node4?.TextNodes.Add("child11", "childText11");
             
-            TextNode? node1Copy = tree.TextNodes["nameA"];
+            TextNode? node1Copy = tree.TextNodes["grandpaA"];
 
-            TextNode? node2Copy = tree.TextNodes["nameA"]?.TextNodes["name2"];
+            TextNode? node2Copy = tree.TextNodes["grandpaA"]?.TextNodes["father1"];
 
             foreach (TextNode node in tree.TextNodes)
             {

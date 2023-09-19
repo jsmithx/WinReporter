@@ -38,37 +38,28 @@ namespace WinReporter
         public TextNodeCollection TextNodes { get { return this._TextNodes; } set{ this._TextNodes = value; } }
         public TextNode(TextNode? parent, string name, string text)
         {
-            this._TextNodes = new(parent);
+            this._TextNodes = new(this);
             this._Parent = parent;
-            this._Level = parent != null ? parent.Level + 1 : 0;
             this.Initialize(name, text, string.Empty);
         }
         public TextNode(string name, string text)
         {
             this._TextNodes = new(this);
+            this._Parent = null;
             this.Initialize(name, text, string.Empty);
         }
         public TextNode(string name, string text, string imageKey)
         {
             this._TextNodes = new(this);
+            this._Parent = null;
             this.Initialize(name, text, imageKey);
         }
         private void Initialize(string name, string text, string imageKey)
         {
+            this._Level = this._Parent != null ? this._Parent.Level + 1 : 0;
             this.Name = name;
             this.Text = text;
-            this.ImageKey = ImageKey;
-            
-            /*
-            if (this._Parent != null)
-            {
-                this._Level = this._Parent._Level + 1;
-            }
-            else
-            {
-                this._Level = 0;
-            }
-            */
+            this.ImageKey = imageKey;
         }
     }
 
@@ -97,26 +88,18 @@ namespace WinReporter
     }
     public class TextNodeCollection : OrderedHashSet //HashSet<TextNode>
     {
-        private TextNode? Parent { get; set; }
+        private TextNode? _Parent;
+        private TextNode? Parent { get => this._Parent; }
 
         public virtual TextNode? this[TextNode textNode] => this.GetSimilarTextNode(textNode);
         public TextNodeCollection(TextNode? parent)
         {
-            this.Parent = parent;
+            this._Parent = parent;
         }
         public TextNode Add(string name, string text)
         {
-
             TextNode textNode;
-            if(this.Parent != null)
-            {
-                textNode = new TextNode(this.Parent, name, text);
-            }
-            else
-            {
-                textNode = new TextNode(this.Parent, name, text);
-            }
-
+            textNode = new TextNode(this.Parent, name, text);
             this.Add(textNode);
 
             return (textNode);

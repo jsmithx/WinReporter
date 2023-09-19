@@ -57,6 +57,7 @@ namespace WinReporter
                 TextNodeCollection textNodes = node.TextNodes;
             }
 
+            tree.TextNodes.Remove("grandpaD");
             string treeText = tree.TextNodes.Serialize();
         }
         

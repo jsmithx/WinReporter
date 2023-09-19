@@ -32,6 +32,8 @@ namespace WinReporter
         public string Text { get { return this._Text; } set { this._Text = value; } }
         string _ImageKey = string.Empty;
         public string ImageKey { get { return this._ImageKey; } set { this._ImageKey= value; } }
+        string _SelectedImageKey = string.Empty;
+        public string SelectedImageKey { get { return this._SelectedImageKey; } set { this._SelectedImageKey = value; } }
         TextNodeCollection _TextNodes;
         public TextNodeCollection TextNodes { get { return this._TextNodes; } set{ this._TextNodes = value; } }
         public TextNode(TextNode? parent, string name, string text)
@@ -58,6 +60,7 @@ namespace WinReporter
             this.Name = name;
             this.Text = text;
             this.ImageKey = imageKey;
+            this.SelectedImageKey = imageKey;
         }
     }
 
@@ -122,7 +125,16 @@ namespace WinReporter
             for (int i = 0; i < this.Items.Count; i++)
             {
                 TextNode node = this.Items[i];
-                lines.Append("<" + "level=" + node.Level + " name=(" + node.Name + ") text=(" + node.Text + ")" + ">" + Environment.NewLine);
+                lines.Append(
+                    "<" +
+                    "Level=" + node.Level + " " +
+                    "Name=(" + node.Name + ") " +
+                    (node.ImageKey.Length > 0 ? "ImageKey=" + node.ImageKey + " " : "") +
+                    (node.SelectedImageKey.Length > 0 ? "SelectedImageKey=" + node.SelectedImageKey + " " : "") +
+                    "Text=(" + node.Text + ") " +
+                    ">" +
+                    Environment.NewLine
+                    );
                 lines.Append(node.TextNodes.Serialize());
             }
             return (lines.ToString());

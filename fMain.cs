@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Data;
 using Microsoft.Data.Sqlite;
+using System.IO;
 
 namespace WinReporter
 {
@@ -54,11 +55,18 @@ namespace WinReporter
             foreach (TextNode node in tree.TextNodes)
             {
                 string name = node.Name;
-                TextNodeCollection textNodes = node.TextNodes;
+                TextNodeCollection myTextNodes = node.TextNodes;
             }
 
             tree.TextNodes.Remove("grandpaD");
-            string treeText = tree.TextNodes.Serialize();
+
+            Stream stream = new MemoryStream();
+            stream = tree.TextNodes.Serialize(ref stream);
+            byte[] bytes = ((MemoryStream)stream).ToArray();
+            string bytesStr = bytes.ToText();
+
+
+            TextNodeCollection textNodes = TextNodeCollection.Deserialize(ref stream);
         }
         
         private string TreeToText(TreeNodeCollection nodes)

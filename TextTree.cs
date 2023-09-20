@@ -14,6 +14,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Collections.ObjectModel;
 using System.Threading.Channels;
 using System.Reflection;
+using System.CodeDom;
 
 namespace WinReporter
 {
@@ -36,6 +37,10 @@ namespace WinReporter
         public string SelectedImageKey { get { return this._SelectedImageKey; } set { this._SelectedImageKey = value; } }
         TextNodeCollection _TextNodes;
         public TextNodeCollection TextNodes { get { return this._TextNodes; } set{ this._TextNodes = value; } }
+        public long _NodePosition = 0;
+        public long NodePosition { get=>this._NodePosition; set { this._NodePosition = value; } }
+        public long? _ParentPosition;
+        public long? ParentPosition { get => this._ParentPosition; set { this._ParentPosition = value; } }
         public TextNode(TextNode? parent, string name, string text)
         {
             this._TextNodes = new(this);
@@ -118,26 +123,95 @@ namespace WinReporter
             return (result);
         }
 
-        public string Serialize()
+        public static TextNodeCollection Deserialize(ref Stream stream, long basePosition = 0)
         {
-            StringBuilder lines = new();
+            byte[] data = new byte[sizeof(long)];
+            stream.Position = basePosition + stream.Length - data.Length;
+            stream.Read(data);
 
+            long XrefPosition = BitConverter.ToInt64(data, 0);
+
+            return (new(null));
+        }
+        public Stream Serialize(ref Stream stream, long basePosition = 0)
+        {
+            return (this.Serialize(ref stream, 0, true));
+        }
+        private Stream Serialize(ref Stream stream, long basePosition, bool IsRoot)
+        {
+            long[] parentPositionTable = new long[this.Items.Count];
+
+            string res;
             for (int i = 0; i < this.Items.Count; i++)
             {
                 TextNode node = this.Items[i];
-                lines.Append(
-                    "<" +
-                    "Level=" + node.Level + " " +
-                    "Name=(" + node.Name + ") " +
-                    (node.ImageKey.Length > 0 ? "ImageKey=" + node.ImageKey + " " : "") +
-                    (node.SelectedImageKey.Length > 0 ? "SelectedImageKey=" + node.SelectedImageKey + " " : "") +
-                    "Text=(" + node.Text + ") " +
-                    ">" +
-                    Environment.NewLine
-                    );
-                lines.Append(node.TextNodes.Serialize());
+
+                node.NodePosition = basePosition + stream.Position;
+                if (IsRoot == true)
+                {
+                    parentPositionTable[i] = node.NodePosition;
+                }
+
+                stream.Write("<".ToBytes());
+
+                stream.Write("/Type ".ToBytes());
+                stream.Write("/Node".ToBytes());
+                stream.Write(" ".ToBytes());
+
+                stream.Write("/Name (".ToBytes());
+                stream.Write(node.Name.ToBytes());
+                res = node.Name.ToBytes().ToText();
+                stream.Write(") ".ToBytes());
+
+                stream.Write("/Level ".ToBytes());
+                stream.Write(node.Level.ToBytes());
+                res = node.Level.ToBytes().ToText();
+                stream.Write(" ".ToBytes());
+
+                if (node.Parent != null)
+                {
+                    stream.Write("/ParentPosition ".ToBytes());
+                    node.ParentPosition = node.Parent.NodePosition;
+                    stream.Write(node.ParentPosition.ToBytes());
+                    res = node.ParentPosition.ToBytes().ToText();
+                    stream.Write(" ".ToBytes());
+                }
+
+                stream.Write("/Text (".ToBytes());
+                stream.Write(node.Text.ToBytes());
+                res = node.Text.ToBytes().ToText();
+                stream.Write(")".ToBytes());
+                stream.Write(">".ToBytes());
+
+                stream.Write(Environment.NewLine.ToBytes());
+
+                node.TextNodes.Serialize(ref stream, basePosition, false);
             }
-            return (lines.ToString());
+
+            if (IsRoot == true)
+            {
+                long XrefPosition = basePosition + stream.Position;
+
+                stream.Write("<".ToBytes());
+
+                stream.Write("/Type=".ToBytes());
+                stream.Write("/Xref".ToBytes());
+                stream.Write(" ".ToBytes());
+                stream.Write("/Count=".ToBytes());
+
+                stream.Write(parentPositionTable.Length.ToBytes());
+
+                stream.Write(">".ToBytes());
+
+                for (int i = 0; i < parentPositionTable.Length; i++)
+                {
+                    string pos = parentPositionTable[i].ToBytes().ToText();
+                    stream.Write(parentPositionTable[i].ToBytes());
+                }
+                stream.Write(BitConverter.GetBytes(XrefPosition));
+            }
+
+            return (stream);
         }
     }
 

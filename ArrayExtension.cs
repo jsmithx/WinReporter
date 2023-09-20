@@ -150,6 +150,12 @@ namespace WinReporter
         {
             return(TextEncoder.GetBytes(source));
         }
+        public static byte[] ToBytes(this object? source)
+        {
+            string? result = Convert.ToString(source);
+
+            return (result == null ? new byte[0] : result.ToBytes());
+        }
         public static byte[] SelectByteRange(this byte[] source, int start, int length)
         {
             return (source.Skip(start).Take(length).ToArray());

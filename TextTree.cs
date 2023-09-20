@@ -85,15 +85,13 @@ namespace WinReporter
             return (result);
         }
     }
-    public class OrderedHashSet : KeyedCollection<string, TextNode>
+    public class TextNodeCollection : KeyedCollection<string, TextNode>
     {
         protected override string GetKeyForItem(TextNode item)
         {
             return item.Name;
         }
-    }
-    public class TextNodeCollection : OrderedHashSet //HashSet<TextNode>
-    {
+
         private TextNode? _Parent;
         private TextNode? Parent { get => this._Parent; }
 
@@ -152,7 +150,7 @@ namespace WinReporter
                     parentPositionTable[i] = node.NodePosition;
                 }
 
-                stream.Write("<".ToBytes());
+                stream.Write("<<".ToBytes());
 
                 stream.Write("/Type ".ToBytes());
                 stream.Write("/Node".ToBytes());
@@ -181,7 +179,7 @@ namespace WinReporter
                 stream.Write(node.Text.ToBytes());
                 res = node.Text.ToBytes().ToText();
                 stream.Write(")".ToBytes());
-                stream.Write(">".ToBytes());
+                stream.Write(">>".ToBytes());
 
                 stream.Write(Environment.NewLine.ToBytes());
 
@@ -192,7 +190,7 @@ namespace WinReporter
             {
                 long XrefPosition = basePosition + stream.Position;
 
-                stream.Write("<".ToBytes());
+                stream.Write("<<".ToBytes());
 
                 stream.Write("/Type=".ToBytes());
                 stream.Write("/Xref".ToBytes());
@@ -201,7 +199,7 @@ namespace WinReporter
 
                 stream.Write(parentPositionTable.Length.ToBytes());
 
-                stream.Write(">".ToBytes());
+                stream.Write(">>".ToBytes());
 
                 for (int i = 0; i < parentPositionTable.Length; i++)
                 {

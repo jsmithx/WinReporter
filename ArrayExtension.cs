@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace WinReporter
             int decodedPos = 0;
             while (i < source.Length)
             {
-                if (source.IsEqual(i, escapeChar) == true)
+                if (source.IsLeftEqual(i, escapeChar) == true)
                 {
                     i += escapeCharBytes.Length;
 
@@ -131,7 +132,7 @@ namespace WinReporter
 
             while (i < source.Length)
             {
-                if (source.IsEqual(i, escapeChar) == true)
+                if (source.IsLeftEqual(i, escapeChar) == true)
                 {
                     count++;
                     i += escapeCharBytes.Length;
@@ -174,7 +175,7 @@ namespace WinReporter
 
             while (posEnd < source.Length)
             {
-                bool isEqual = source.IsEqual(posEnd, separators, out matchedSeparator);
+                bool isEqual = source.IsLeftEqual(posEnd, separators, out matchedSeparator);
                 bool isEndPos = posEnd == source.Length - 1;
                 bool isEndPosDelimiter = false;
 
@@ -225,7 +226,7 @@ namespace WinReporter
 
             for (int i = 0; i < keyChars.Length; i++)
             {
-                if (source.IsEqual(sourcePos, keyChars[i]) == true)
+                if (source.IsLeftEqual(sourcePos, keyChars[i]) == true)
                 {
                     matchedChar = keyChars[i];
                     return (true);
@@ -234,12 +235,20 @@ namespace WinReporter
 
             return (false);
         }
-        public static bool IsEqual(this byte[] source, int sourcePos, char keyChar)
+        public static bool IsLeftEqual(this byte[] source, int sourcePos, char keyChar)
         {
-            return(source.IsEqual(sourcePos, BitConverter.GetBytes(keyChar)));
+            return(source.IsLeftEqual(sourcePos, BitConverter.GetBytes(keyChar)));
         }
+        public static bool IsEqual(this byte[] source, byte[] key)
+        {
+            return (source.Length == key.Length && source.IsLeftEqual(0, key));
+        }
+        public static bool IsLeftEqual(this byte[] source, byte[] key)
+        {
+            return (source.IsLeftEqual(0, key));
 
-        public static bool IsEqual(this byte[] source, int sourcePos, byte[] key)
+        }
+        public static bool IsLeftEqual(this byte[] source, int sourcePos, byte[] key)
         {
             bool isValid = true;
             int n = 0;
@@ -262,7 +271,7 @@ namespace WinReporter
             }
             return (isValid);
         }
-        public static bool IsEqual(this byte[] source, int sourcePos, byte[][] keys, out byte[] matchedKey)
+        public static bool IsLeftEqual(this byte[] source, int sourcePos, byte[][] keys, out byte[] matchedKey)
         {
             matchedKey = new byte[0];
             bool isValid = true;
@@ -298,7 +307,7 @@ namespace WinReporter
 
             return (isValid);
         }
-        public static bool IsEqual(this byte[] source, int sourcePos, TextKey[] keys, out TextKey matchedTextKey)
+        public static bool IsLeftEqual(this byte[] source, int sourcePos, TextKey[] keys, out TextKey matchedTextKey)
         {
             matchedTextKey = TextKey.Empty;
 
@@ -311,7 +320,7 @@ namespace WinReporter
                     byte[] key = keys[k].Subkeys[n];
                     string keyStr = key.ToText();
 
-                    isValid = source.IsEqual(sourcePos, key);
+                    isValid = source.IsLeftEqual(sourcePos, key);
                     if (isValid == true)
                     {
                         matchedTextKey = keys[k];
@@ -338,6 +347,33 @@ namespace WinReporter
                 }
             }
             return (false);
+        }
+
+        public static int IndexOf(this byte[] source, int startPos, byte[] key)
+        {
+            return (source.IndexOf(startPos, new byte[][] { key }, out _));
+        }
+        public static int IndexOf(this byte[] source, int startPos, byte[][] keys, out byte[] matchedKey)
+        {
+            int pos = startPos;
+            matchedKey = new byte[0];
+
+            while(pos < source.Length)
+            {
+                int k = 0;
+                while (k < keys.Length)
+                {
+                    if (source.IsLeftEqual(pos, keys[k]))
+                    {
+                        matchedKey = keys[k];
+                        return (pos);
+                    }
+                    k++;
+                }
+                pos++;
+            }
+
+            return (-1);
         }
     }
 }

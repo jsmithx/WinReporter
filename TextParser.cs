@@ -64,7 +64,7 @@ namespace WinReporter
             {
                 TextKey matchedKey;
 
-                if (dataSource.IsLetterOrDigit(pos - 1) == false && dataSource.IsEqual(pos, LKeys.ToArray(), out matchedKey) == true)
+                if (dataSource.IsLetterOrDigit(pos - 1) == false && dataSource.IsLeftEqual(pos, LKeys.ToArray(), out matchedKey) == true)
                 {
                     if (resultPos > -1)
                     {
@@ -115,7 +115,7 @@ namespace WinReporter
                 byte[] tagToDisableBytes = tagToDisable.ToBytes();
                 int sourceStart = tagToDisableBytes.Length;
 
-                if (keyBytes.IsEqual(0, tagToDisableBytes))
+                if (keyBytes.IsLeftEqual(0, tagToDisableBytes))
                 {
                     keyBytesModified = new byte[keyBytes.Length - tagToDisableBytes.Length];
                     sourceStart = tagToDisableBytes.Length;

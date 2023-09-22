@@ -70,7 +70,8 @@ namespace WinReporter
 
 
             string textObjectStr =
-                "<<\r\n  /Type /Catalog\r\n  /Lang (en-UK)                                  % Default language\r\n  /OCProperties <<                               % Optional Content a.k.a. Layers\r\n    /D <<\r\n      /OFF        [ 3 0 R 4 0 R ]\r\n      /Order      [ 3 0 R 4 0 R ]\r\n    >>\r\n    /OCGs         [ 3 0 R 4 0 R ]\r\n  >>\r\n  /Pages          5 0 R\r\n  /PageLabels     6 0 R\r\n  /StructTreeRoot 7 0 R                          % Tagged PDF & Logical Structure\r\n  /Outlines       8 0 R                          % a.k.a Bookmarks\r\n  /PageMode /UseOutlines                         % hopefully bookmarks are displayed by default (or /UseOC)\r\n  /MarkInfo << /Marked true >>                   % indicates Logical Structure\r\n  /ViewerPreferences << /DisplayDocTitle true >> % hopefully the UTF-8 Title string is displayed\r\n>>";
+                "<</Tree <</Type /Cool>>>>";
+                //"<<\r\n  /Type /Catalog\r\n  /Lang (en-UK)                                  % Default language\r\n  /OCProperties <<                               % Optional Content a.k.a. Layers\r\n    /D <<\r\n      /OFF        [ 3 0 R 4 0 R ]\r\n      /Order      [ 3 0 R 4 0 R ]\r\n    >>\r\n    /OCGs         [ 3 0 R 4 0 R ]\r\n  >>\r\n  /Pages          5 0 R\r\n  /PageLabels     6 0 R\r\n  /StructTreeRoot 7 0 R                          % Tagged PDF & Logical Structure\r\n  /Outlines       8 0 R                          % a.k.a Bookmarks\r\n  /PageMode /UseOutlines                         % hopefully bookmarks are displayed by default (or /UseOC)\r\n  /MarkInfo << /Marked true >>                   % indicates Logical Structure\r\n  /ViewerPreferences << /DisplayDocTitle true >> % hopefully the UTF-8 Title string is displayed\r\n>>";
             TextObject textObject = new(textObjectStr.ToBytes());
 
 
@@ -108,7 +109,7 @@ namespace WinReporter
 
             while (pos < textData.Length)
             {
-                if (textData.IsEqual(pos, openBracket))
+                if (textData.IsLeftEqual(pos, openBracket))
                 {
                     if (bracketBalance == 0)
                     {
@@ -117,7 +118,7 @@ namespace WinReporter
                     bracketBalance++;
                     pos += openBracket.Length - 1;
                 }
-                else if (textData.IsEqual(pos, closeBracket))
+                else if (textData.IsLeftEqual(pos, closeBracket))
                 {
                     bracketBalance--;
                     if (bracketBalance == 0)

@@ -29,8 +29,23 @@ namespace WinReporter
         public int Level { get => this._Level; }
         private string _Name = string.Empty;
         public string Name { get { return this._Name; } set { this._Name = value; } }
-        private string _Text = string.Empty;
-        public string Text { get { return this._Text; } set { this._Text = value; } }
+        private object? _Value = string.Empty;
+        public object? Value { get { return this._Value; } set { this._Value = value; } }
+        public string ValueStr
+        {
+            get
+            {
+                if (this.Value != null && this.Value.GetType() == typeof(byte[]))
+                {
+                    return (((byte[])this.Value).ToText());
+                }
+                else
+                {
+                    return ("{ TextObject }");
+                }
+            }
+        }
+
         string _ImageKey = string.Empty;
         public string ImageKey { get { return this._ImageKey; } set { this._ImageKey= value; } }
         string _SelectedImageKey = string.Empty;
@@ -41,29 +56,29 @@ namespace WinReporter
         public long NodePosition { get=>this._NodePosition; set { this._NodePosition = value; } }
         public long? _ParentPosition;
         public long? ParentPosition { get => this._ParentPosition; set { this._ParentPosition = value; } }
-        public TextNode(TextNode? parent, string name, string text)
+        public TextNode(TextNode? parent, string name, object? value)
         {
             this._TextNodes = new(this);
             this._Parent = parent;
-            this.Initialize(name, text, string.Empty);
+            this.Initialize(name, value, string.Empty);
         }
-        public TextNode(string name, string text)
+        public TextNode(string name, object? value)
         {
             this._TextNodes = new(this);
             this._Parent = null;
-            this.Initialize(name, text, string.Empty);
+            this.Initialize(name, value, string.Empty);
         }
-        public TextNode(string name, string text, string imageKey)
+        public TextNode(string name, object? value, string imageKey)
         {
             this._TextNodes = new(this);
             this._Parent = null;
-            this.Initialize(name, text, imageKey);
+            this.Initialize(name, value, imageKey);
         }
-        private void Initialize(string name, string text, string imageKey)
+        private void Initialize(string name, object? value, string imageKey)
         {
             this._Level = this._Parent != null ? this._Parent.Level + 1 : 0;
             this.Name = name;
-            this.Text = text;
+            this.Value = value;
             this.ImageKey = imageKey;
             this.SelectedImageKey = imageKey;
         }
@@ -79,7 +94,13 @@ namespace WinReporter
                 result = x.Name.CompareTo(y.Name);
                 if (result == 0)
                 {
-                    result = x.Text.CompareTo(y.Text);
+                    if (x != null && y != null && x.GetType() == typeof(string) && y.GetType() == typeof(string))
+                    {
+                        string xStr = x.Value.ToBytes().ToText();
+                        string yStr = y.Value.ToBytes().ToText();
+
+                        result = (xStr).CompareTo(yStr);
+                    }
                 }
             }
             return (result);
@@ -100,10 +121,10 @@ namespace WinReporter
         {
             this._Parent = parent;
         }
-        public TextNode Add(string name, string text)
+        public TextNode Add(string name, object? value)
         {
             TextNode textNode;
-            textNode = new TextNode(this.Parent, name, text);
+            textNode = new TextNode(this.Parent, name, value);
             this.Add(textNode);
 
             return (textNode);
@@ -117,7 +138,7 @@ namespace WinReporter
         {
             if (this.Count == 0) { return (TextNode.Empty); }
 
-            TextNode? result = this.Where(w => w.Name == textNode.Name && w.Text == textNode.Text).FirstOrDefault();
+            TextNode? result = this.Where(w => w.Name == textNode.Name && w.Value == textNode.Value).FirstOrDefault();
             return (result);
         }
 
@@ -176,8 +197,8 @@ namespace WinReporter
                 }
 
                 stream.Write("/Text (".ToBytes());
-                stream.Write(node.Text.ToBytes());
-                res = node.Text.ToBytes().ToText();
+                stream.Write(node.Value.ToBytes());
+                res = node.Value.ToBytes().ToText();
                 stream.Write(")".ToBytes());
                 stream.Write(">>".ToBytes());
 
